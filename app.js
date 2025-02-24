@@ -1,8 +1,8 @@
 
-let room = {
-    start: [0,3],
-    end: [3,3],
-    length: 0,
+let path = {
+    start: [],
+    end: [],
+    len: 0,
     right: true
 }
 
@@ -41,10 +41,55 @@ function crosswordSolver(emptyPuzzle, words) {
 
     let board = createBoard(emptyPuzzle)
     if (board === undefined) return "Error"
+    let paths = extractPaths([...board])
+    console.log(board)
+    console.log(paths)
 
 
 }
 
+
+function buildPath(start,end,right) {
+    let path = {
+        start,
+        end,
+        // length 
+        right
+    }
+
+    path.len = right ? +end[1]+1 : +end[0]+1 
+    return path
+}
+
+
+function extractPaths(board) {
+    let paths = []
+    for (let line = 0 ; line < board.length;line++) {
+        for (let char = 0 ; char < board[line].length; char++) {
+            switch (board[line][char]) {
+                case '2':
+                    console.log(1)
+                    paths.push(buildPath([line,char],[line,findEndPath(board,line,char,true)],true))
+                    paths.push(buildPath([line,char],[findEndPath(board,line,char,false),char],false))
+                    break;
+                case '1':
+                    let canGoRight = char !==  board[line].length-1
+                    let canGoDown = line !==  board.length-1
+                    
+                    if (canGoRight && board[line][char+1] !== '.') {
+                        paths.push(buildPath([line,char],[line,findEndPath(board,line,char,true)],true))
+                    }else if (canGoDown && board[line][char+1] !== '.') {
+                        paths.push(buildPath([line,char],[findEndPath(board,line,char,false),char],false))
+                    }
+                    break;
+                default:
+                    continue;
+            }
+        }
+    }
+    console.log(paths)
+    return paths
+}
 
 
 function createBoard(emptyPuzzle) {
@@ -59,7 +104,7 @@ function createBoard(emptyPuzzle) {
     return board
 }
 
-function foundPathe(board, row, colon, right) {
+function findEndPath(board, row, colon, right) {
     let last = 0
     let foundIt = false
     
@@ -93,20 +138,35 @@ function foundPathe(board, row, colon, right) {
 
 
 
-const emptyPuzzle = `200.
-0..0
-.000
-0..0`
-const words = ['casa', 'alan', 'ciao', 'anta']
-let board = createBoard(emptyPuzzle)
-let end= foundPathe(board, 0, 0,true)
+const puzzle = `...1...........
+..1000001000...
+...0....0......
+.1......0...1..
+.0....100000000
+100000..0...0..
+.0.....1001000.
+.0.1....0.0....
+.10000000.0....
+.0.0......0....
+.0.0.....100...
+...0......0....
+..........0....`
+const words = [
+  'sun',
+  'sunglasses',
+  'suncream',
+  'swimming',
+  'bikini',
+  'beach',
+  'icecream',
+  'tan',
+  'deckchair',
+  'sand',
+  'seaside',
+  'sandals',
+]
 
-console.log(board, end)
 
-end = foundPathe(board, 0, 0,false)
 
-console.log(board, end)
-
-// foundPathe(board, 2, 0,true)
-// console.log(board, end)
-
+console.log(crosswordSolver(puzzle,words))
+console.log([undefined||true])

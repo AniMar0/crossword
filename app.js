@@ -41,7 +41,8 @@ function crosswordSolver(emptyPuzzle, words) {
 
     let board = createBoard(emptyPuzzle)
     if (board === undefined) return "Error"
-    let paths = extractPaths([...board])
+    let boardCopy = createBoard(emptyPuzzle)
+    let paths = extractPaths(boardCopy, board)
     console.log(paths)
 }
 
@@ -50,16 +51,15 @@ function buildPath(start, end, right) {
     let path = {
         start,
         end,
-        // length 
         right
     }
 
-    path.len = right ? ((+end[1]) - (+start[1])) + 1 : ((+end[0]) - (+start[0])) + 1
+    path.len = right ? +end[1] - start[1] + 1 : +end[0] - start[0] + 1
     return path
 }
 
 
-function extractPaths(board) {
+function extractPaths(board, origin) {
     let paths = []
     for (let line = 0; line < board.length; line++) {
         for (let char = 0; char < board[line].length; char++) {
@@ -67,14 +67,20 @@ function extractPaths(board) {
                 paths.push(buildPath([line, char], [line, findEndPath(board, line, char, true)], true))
                 paths.push(buildPath([line, char], [findEndPath(board, line, char, false), char], false))
             } else if (board[line][char] == '1') {
-                let canGoRight = char !== board[line].length - 1
+                let canGoRight = char !== board[line].length - 1 
                 let canGoDown = line !== board.length - 1
-                
-                if (canGoRight && board[line][char + 1] !== '.') {
-                    paths.push(buildPath([line, char], [line, findEndPath(board, line, char, true)], true))
+
+                //if (canGoRight && board[line][char + 1] !== '.' ) {
+                if (canGoRight && (origin[line][char+1] === '0')) {
+                    if ((char === 0) || (char > 0 && origin[line][char-1] != '0')) {
+                        paths.push(buildPath([line, char], [line, findEndPath(board, line, char, true)], true))
+                    }
                 }
-                 if (canGoDown && board[line+1][char] !== '.') {
-                    paths.push(buildPath([line, char], [findEndPath(board, line, char, false), char], false))
+                if (canGoDown && origin[line+1][char] === '0') {
+                //if (canGoDown && board[line + 1][char] !== '.' && (board[line + 2][char] !== 'x' || board[line - 1][char] !== '0') ) {
+                    if ((line === 0) || (line > 0 && origin[line-1][char] != '0')) {
+                        paths.push(buildPath([line, char], [findEndPath(board, line, char, false), char], false))
+                    }
                 }
             }
         }
@@ -96,14 +102,16 @@ function createBoard(emptyPuzzle) {
 
 function findEndPath(board, row, colon, right) {
     if (right) {
+        
         board[row][colon] = board[row][colon] === "2" ? "1" : "x"
         for (let i = colon + 1; i < board[row].length; i++) {
             if (board[row][i] == ".") {
                 return i - 1
-            } else if (board[row][i] == "0") {
+            } else if (board[row][i] == "0" || board[row][i] == "x") {
                 board[row][i] = "x"
             }
-            if (i == board.length - 1) {
+            if (i == board[row].length - 1) {
+                board[row][i] = "x"
                 return i
             }
         }
@@ -112,7 +120,7 @@ function findEndPath(board, row, colon, right) {
         for (let i = row + 1; i < board.length; i++) {
             if (board[i][colon] == ".") {
                 return i - 1
-            } else if (board[i][colon] == "0") {
+            } else if (board[i][colon] == "0" || board[i][colon] == "x") {
                 board[i][colon] = "x"
             }
             if (i == board.length - 1) {
@@ -123,15 +131,26 @@ function findEndPath(board, row, colon, right) {
     }
 }
 
+function ret_len(words) {
+    var arr = []
+    var obj = {}
 
-// const puzzle = `2001
-// 0..0
-// 1000
-// 0..0`
-// const words = ['casa', 'alan', 'ciao', 'anta']
+    for (let word of words) {
+        if (obj[word.length] === undefined) {
+            obj[word.length] = []
+        }
+        obj[word.length]= [...obj[word.length],word]
+    }
+    return obj
+}
 
-const puzzle =
-    `...1...........
+/*const puzzle = `2001
+0..0
+1000
+0..0`
+const words = ['casa', 'alan', 'ciao', 'anta']*/
+
+const puzzle = `...1...........
 ..1000001000...
 ...0....0......
 .1......0...1..
@@ -145,20 +164,20 @@ const puzzle =
 ...0......0....
 ..........0....`
 const words = [
-    'sun',
     'sunglasses',
+    'deckchair',
     'suncream',
     'swimming',
-    'bikini',
-    'beach',
     'icecream',
-    'tan',
-    'deckchair',
-    'sand',
     'seaside',
     'sandals',
+    'bikini',
+    'beach',
+    'sand',
+    'sun',
+    'tan',
 ]
 
 
-
+console.log(ret_len(words))
 console.log(crosswordSolver(puzzle, words))

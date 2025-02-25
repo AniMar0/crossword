@@ -38,13 +38,49 @@ function crosswordValidator(empty_puzzle, words) {
 
 function crosswordSolver(emptyPuzzle, words) {
     if (!crosswordValidator(emptyPuzzle, words)) return "Error";
-
     let board = createBoard(emptyPuzzle)
     if (board === undefined) return "Error"
     let boardCopy = createBoard(emptyPuzzle)
     let paths = extractPaths(boardCopy, board)
-    console.log(paths)
+    let wordsObj = createWordsObj(words)
+    let [uniqueLenPaths,otherPaths] = sortPaths(wordsObj,paths)
+    paths = [uniqueLenPaths,otherPaths]
+    placeUniqueLenWords(board,uniqueLenPaths,wordsObj)
+    placeOtherWord(board, otherPaths,wordsObj)
+    
 }
+
+function placeUniqueLenWords(board,paths,wordsObj) {
+    console.log(wordsObj['10'][0][0])
+    // sand
+    console.log(paths)
+    for (path of paths) {
+        if (path.right) {
+            let start = path.start[1]
+            for ( let i=path.start[1] ; i <= path.end[1]; i++ ){
+                console.log("start: ", start, "index: ", i, "end: ", path.len)
+                board[path.start[0]][i] = wordsObj[path.len][0][0 + (i - path.start[1])];
+            }
+        }else{
+            let start = path.start[0]
+
+            for ( let i=path.start[0] ; i <= path.end[0]; i++ ){
+                console.log("start: ", start, "index: ", i, "end: ", path.len)
+                board[i][path.start[1]] = wordsObj[path.len][0][0 + (i - path.start[0])];
+            }
+        }
+    }
+    console.log(board)
+}
+
+function checkForRepeat(paths) {
+    var arr = []
+}
+
+function placeOtherWord(board, paths, wordsObj) {
+    console.log("paths: ", paths)
+}
+
 
 
 function buildPath(start, end, right) {
@@ -53,8 +89,7 @@ function buildPath(start, end, right) {
         end,
         right
     }
-
-    path.len = right ? +end[1] - start[1] + 1 : +end[0] - start[0] + 1
+    path.len = right ? (+end[1] - start[1] + 1) : (+end[0] - start[0] + 1)
     return path
 }
 
@@ -87,6 +122,21 @@ function extractPaths(board, origin) {
     }
     return paths
 }
+
+function sortPaths(words, paths) {
+    let uniqueLenPaths = []
+    let otherPaths = []
+    for (let lenWord in words) {
+         filterPaths = paths.filter(path=> path.len === +lenWord)
+         if (filterPaths.length == 1) {
+             uniqueLenPaths = [...uniqueLenPaths,...filterPaths]
+         } else {
+            otherPaths = [...otherPaths, ...filterPaths]
+         }
+    }
+    return [uniqueLenPaths,otherPaths]
+}
+
 
 function createBoard(emptyPuzzle) {
     let board = []
@@ -131,7 +181,7 @@ function findEndPath(board, row, colon, right) {
     }
 }
 
-function ret_len(words) {
+function createWordsObj(words) {
     var arr = []
     var obj = {}
 
@@ -178,6 +228,4 @@ const words = [
     'tan',
 ]
 
-
-console.log(ret_len(words))
 console.log(crosswordSolver(puzzle, words))
